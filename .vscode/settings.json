@@ -1,0 +1,33 @@
+{
+    // redundant settings for standalone VSCode, also set in source devcontainer.json for Codespaces.
+    "files.exclude": {
+        ".vscode/": true,
+        ".github/": true,
+        ".devcontainer/": true,
+        ".gitignore": true,
+        "settings.gradle": true,
+        "**/build.gradle": true,
+        // From .gitignore
+        "*.class": true,
+        ".gradle/": true,
+        "build/": true,
+        "bin/": true
+    },
+    // editor formatting conventions for Java
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false,
+    "editor.inlayHints.enabled": "offUnlessPressed",
+    // extension specific settings.
+    "git.autofetch": true,
+    "git.confirmSync": false,
+    "githubPullRequests.ignoredPullRequestBranches": [],
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.showBuildStatusOnStart.enabled": "notification",
+    "java.server.launchMode": "Standard",
+    // disable telemetry
+    "redhat.telemetry.enabled": false,
+    "telemetry.telemetryLevel": "off",
+    "telemetry.enableTelemetry": false,
+    "telemetry.enableCrashReporter": false,
+}

@@ -1,0 +1,9 @@
+# Compiled class file
+*.class
+
+# For Gradle.
+/.gradle/
+/build/
+# Used by VSCode Java run
+/bin/
+.DS_Store
