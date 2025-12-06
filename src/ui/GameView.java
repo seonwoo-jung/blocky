@@ -7,20 +7,14 @@
 
 package ui;
 
-import game.*;
-import players.*;
-
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Point;
+import java.awt.*;
 import java.util.List;
 
-import javax.swing.BorderFactory;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
+import javax.swing.*;
+
+import game.Block;
+import game.Game;
+import players.Player;
 
 public class GameView {
 
@@ -113,7 +107,7 @@ public class GameView {
             gbc.anchor = GridBagConstraints.CENTER;
             gbc.weightx = 0.0;
             gbc.fill = GridBagConstraints.HORIZONTAL;
-            String goalDesc = (p.getPlayerGoal() != null) ? p.getPlayerGoal().goalDescription() : "No Goal";
+            String goalDesc = (p.getGoal() != null) ? p.getGoal().goalDescription() : "No Goal";
             JLabel pGoal = new JLabel(goalDesc);
             pGoal.setForeground(textColor);
             pGoal.setOpaque(true);
@@ -126,7 +120,7 @@ public class GameView {
             gbc.anchor = GridBagConstraints.EAST;
             gbc.weightx = 0.0;
             gbc.fill = GridBagConstraints.HORIZONTAL;
-            int score = (p.getPlayerGoal() != null && board != null) ? p.getPlayerGoal().score(board) : 0;
+            int score = (p.getGoal() != null && board != null) ? p.getGoal().score(board) : 0;
             JLabel pScore = new JLabel("" + score);
             pScore.setForeground(textColor);
             pScore.setOpaque(true);
@@ -140,8 +134,8 @@ public class GameView {
             gbc.weightx = 0.0;
             gbc.fill = GridBagConstraints.NONE; // Don't stretch the color box
             JPanel colorSwatch = new JPanel();
-            if (p.getPlayerGoal() != null) {
-                colorSwatch.setBackground(p.getPlayerGoal().targetColor);
+            if (p.getGoal() != null) {
+                colorSwatch.setBackground(p.getGoal().getTargetColor());
             } else {
                 colorSwatch.setBackground(Color.GRAY);
             }

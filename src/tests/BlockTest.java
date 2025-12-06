@@ -1,9 +1,8 @@
 package tests;
 
+import java.awt.*;
+
 import game.Block;
-import game.Quadrant;
-import java.awt.Color;
-import java.awt.Point;
 
 /**
  * Comprehensive test suite for Block.java
@@ -85,7 +84,7 @@ public class BlockTest {
         // Test root block
         Block root = new Block(new Point(0, 0), 3, null, 100);
         assertEquals("Root block level", 0, root.getLevel());
-        assertEquals("Root block max_depth", 3, root.getMax_depth());
+        assertEquals("Root block max_depth", 3, root.getMaxDepth());
         assertEquals("Root block size", 100, root.getRect().width);
         assertEquals("Root block has no children initially", 0, root.getChildren().length);
         assertTrue("Root block has color", root.getColor() != null);
@@ -415,7 +414,7 @@ public class BlockTest {
         assertEquals("Copy has same number of children",
                 original.getChildren().length, copy.getChildren().length);
         assertEquals("Copy has same level", original.getLevel(), copy.getLevel());
-        assertEquals("Copy has same max_depth", original.getMax_depth(), copy.getMax_depth());
+        assertEquals("Copy has same max_depth", original.getMaxDepth(), copy.getMaxDepth());
 
         // Verify children colors match
         for (int i = 0; i < 4; i++) {
