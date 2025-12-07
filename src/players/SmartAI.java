@@ -29,13 +29,11 @@ public class SmartAI extends Player {
 		int bestLevel = -1;
 
 		int boardSize = board.getRect().width;
-		int maxLevel = board.getMaxDepth();   // Block에 getMaxDepth() 있다고 가정 (없다면 getMax_depth())
+		int maxLevel = board.getMaxDepth();
 
 		for (int i = 0; i < TRIALS; i++) {
-			// 1. 보드 전체 복사
 			Block boardCopy = board.copyBlock(board);
 
-			// 2. 복사본에서 랜덤 블록 하나 뽑기 (좌표 + 레벨 랜덤)
 			int level = rand.nextInt(maxLevel + 1);
 			int x = rand.nextInt(boardSize);
 			int y = rand.nextInt(boardSize);
@@ -45,17 +43,13 @@ public class SmartAI extends Player {
 				continue;
 			}
 
-			// 3. 랜덤 액션 선택
 			Action action = randomAction();
 
-			// 4. 복사본에만 액션 적용해서 시뮬레이션
 			action.runAction(targetOnCopy);
 			boardCopy.updateBlockLocations();
 
-			// 5. 점수 계산 (복사본 기준)
 			int score = goal.score(boardCopy);
 
-			// 6. 최고 점수 갱신
 			if (score > bestScore) {
 				bestScore = score;
 				bestAction = action;
@@ -65,7 +59,6 @@ public class SmartAI extends Player {
 			}
 		}
 
-		// 7. 실제 보드에 최고 액션 한 번만 반영
 		if (bestAction != null && bestX >= 0) {
 			Block realTarget = board.getSelectedBlock(bestX, bestY, bestLevel);
 			if (realTarget != null) {

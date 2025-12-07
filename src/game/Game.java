@@ -18,12 +18,15 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 import javax.swing.*;
 
 import players.HumanPlayer;
 import players.Player;
 import players.SimpleAI;
+import players.SmartAI;
+import players.SmartAI2;
 import ui.BlockyMain;
 
 public class Game extends JPanel implements MouseListener {
@@ -39,6 +42,7 @@ public class Game extends JPanel implements MouseListener {
 	// === Representation Invariants ===
 	// - len(players) >= 1
 
+	private Stack<Block> history = new Stack<>();
 	public Block board;
 	public List<Player> players = new ArrayList<>();
 	public GameState state;
@@ -65,7 +69,9 @@ public class Game extends JPanel implements MouseListener {
 	public static Color[] COLOR_LIST = new Color[] {PACIFIC_POINT, REAL_RED, OLD_OLIVE, DAFFODIL_DELIGHT};
 	public static String[] COLOR_NAMES = new String[] {"Pacific Point", "Real Red", "Old Olive", "Daffodil Delight"};
 
-	public Game(int max_depth, int num_human, int random_players, int turns) {
+	public Game(int max_depth, int numHuman, int numSmartAI,
+		int numSmartAI2, int numSimpleAI, int turns) {
+
 		this.setPreferredSize(new Dimension(BOARDSIZE, BOARDSIZE));
 		this.setBackground(Color.darkGray);
 		this.addMouseListener(this);
@@ -76,24 +82,23 @@ public class Game extends JPanel implements MouseListener {
 		board = new Block(new Point(0, 0), max_depth, null, BOARDSIZE);
 		board.smash();
 
-		initPlayers(num_human, random_players);
+		initPlayers(numHuman, numSmartAI, numSmartAI2, numSimpleAI);
 	}
 
-	private void initPlayers(int numHuman, int numRandomAI) {
+	private void initPlayers(int numHuman, int numSmartAI, int numSmartAI2, int numRandomAI) {
 		int id = 1;
 
-		// Human players
 		for (int i = 0; i < numHuman; i++) {
-			Color goalColor = COLOR_LIST[i % COLOR_LIST.length];
-			Goal goal = randomGoal(goalColor);
-			players.add(new HumanPlayer(id++, this, goal));
+			players.add(new HumanPlayer(id++, this, randomGoal(COLOR_LIST[(id - 1) % 4])));
 		}
-
-		// Random AIs
+		for (int i = 0; i < numSmartAI; i++) {
+			players.add(new SmartAI(id++, this, randomGoal(COLOR_LIST[(id - 1) % 4])));
+		}
+		for (int i = 0; i < numSmartAI2; i++) {
+			players.add(new SmartAI2(id++, this, randomGoal(COLOR_LIST[(id - 1) % 4])));
+		}
 		for (int i = 0; i < numRandomAI; i++) {
-			Color goalColor = COLOR_LIST[(id - 1) % COLOR_LIST.length];
-			Goal goal = randomGoal(goalColor);
-			players.add(new SimpleAI(id++, this, goal));
+			players.add(new SimpleAI(id++, this, randomGoal(COLOR_LIST[(id - 1) % 4])));
 		}
 	}
 
@@ -107,7 +112,6 @@ public class Game extends JPanel implements MouseListener {
 		Graphics2D g2 = (Graphics2D)g;
 		board.draw(g2);
 
-		// 선택된 블록 강조 (선택한 경우)
 		if (activeBlock != null) {
 			g2.setColor(Color.WHITE);
 			g2.setStroke(new BasicStroke(4));
@@ -115,16 +119,42 @@ public class Game extends JPanel implements MouseListener {
 		}
 	}
 
-	public void nextTurn(String action) {
-		if (activeBlock == null)
-			return;
+	private void saveState() {
+		history.push(board.copyBlock(board));
+	}
 
-		switch (action) {
-			case "rotate CW" -> activeBlock.rotate(true);
-			case "rotate CCW" -> activeBlock.rotate(false);
-			case "swap H" -> activeBlock.swap(false);
-			case "swap V" -> activeBlock.swap(true);
-			case "smash" -> activeBlock.smash();
+	public void nextTurn(Action action) {
+
+		if (state == GameState.completed) {
+			BlockyMain.updateStatus("Game is over!", false, REAL_RED);
+			return;
+		}
+
+		if (action == Action.UNDO) {
+			performUndo();
+			return;
+		}
+
+		if (activeBlock == null) {
+			BlockyMain.updateStatus("Please select a block first!", false, REAL_RED);
+			return;
+		}
+
+		saveState();
+
+		boolean success = switch (action) {
+			case SMASH -> activeBlock.smash();
+			case SWAP_VERTICALLY -> activeBlock.swap(true);
+			case SWAP_HORIZONTALLY -> activeBlock.swap(false);
+			case TURN_CW -> activeBlock.rotate(true);
+			case TURN_CCW -> activeBlock.rotate(false);
+			case UNSMASH -> activeBlock.unsmash();
+			default -> false;
+		};
+
+		if (!success) {
+			BlockyMain.updateStatus("Action failed!", false, REAL_RED);
+			return;
 		}
 
 		board.updateBlockLocations();
@@ -139,18 +169,40 @@ public class Game extends JPanel implements MouseListener {
 		endOrContinueTurn();
 	}
 
+	private void performUndo() {
+		if (history.isEmpty()) {
+			BlockyMain.updateStatus("Nothing to undo", false, REAL_RED);
+			return;
+		}
+
+		board = history.pop();
+		activeBlock = null;
+
+		if (turnsPlayed > 0) {
+			turnsPlayed--;
+			playerTurn = (playerTurn - 1 + players.size()) % players.size();
+		}
+
+		board.updateBlockLocations();
+		repaint();
+		BlockyMain.updatePlayers();
+		BlockyMain.updateTurns(turnsPlayed, maxTurns);
+		BlockyMain.updateStatus("UNDO applied!", false, MELON_MAMBO);
+	}
+
 	private void endOrContinueTurn() {
 		turnsPlayed++;
+
+		BlockyMain.updateTurns(turnsPlayed, maxTurns); // ← UI 연동 완료 ✔
+
 		if (turnsPlayed >= maxTurns) {
 			endGame();
 			return;
 		}
 
 		playerTurn = (playerTurn + 1) % players.size();
-		Player next = players.get(playerTurn);
 
-		BlockyMain.updateStatus("Turn: " + next.getPlayerName(),
-			false, Color.WHITE);
+		BlockyMain.updatePlayers(); // ★ 추가
 
 		repaint();
 	}
@@ -160,15 +212,12 @@ public class Game extends JPanel implements MouseListener {
 			return;
 		}
 		activeBlock = this.board.getSelectedBlock(click.x, click.y, level);
-		if (activeBlock == null) {
-			BlockyMain.updateStatus("couldn't activate a block at that that location and level(" + level + ")",
-				true, MELON_MAMBO);
-			System.out.println("couldn't activate a block at that that location and level");
-		}
 		repaint();
 	}
 
 	public void endGame() {
+		BlockyMain.updatePlayers();
+
 		int best = Integer.MIN_VALUE;
 		Player winner = null;
 
@@ -180,46 +229,51 @@ public class Game extends JPanel implements MouseListener {
 			}
 		}
 
+		BlockyMain.updateTurns(turnsPlayed, maxTurns);
 		BlockyMain.updateStatus(
-			"Winner: " + winner.getPlayerName() + "  Score: " + best,
-			false, TEMPTING_TURQUOISE
+			"Winner: " + winner.getPlayerName() + " Score: " + best,
+			false, DAFFODIL_DELIGHT
 		);
 
 		state = GameState.completed;
+		activeBlock = null;
+		BlockyMain.enableActions(false);
 		repaint();
 	}
+
 
 	public void startGame() {
 		state = GameState.playing;
 		turnsPlayed = 0;
 		playerTurn = 0;
 
-		Player current = players.get(0);
-		BlockyMain.updateStatus(
-			"Game Start! First: " + current.getPlayerName(),
-			false, Color.WHITE
-		);
-
+		BlockyMain.updateTurns(0, maxTurns);
 		repaint();
 	}
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
+		if (state == GameState.completed)
+			return;
 		click = new Point(e.getX(), e.getY());
 		selectClick();
 	}
 
 	@Override
-	public void mousePressed(MouseEvent e) {}
+	public void mousePressed(MouseEvent e) {
+	}
 
 	@Override
-	public void mouseReleased(MouseEvent e) {}
+	public void mouseReleased(MouseEvent e) {
+	}
 
 	@Override
-	public void mouseEntered(MouseEvent e) {}
+	public void mouseEntered(MouseEvent e) {
+	}
 
 	@Override
-	public void mouseExited(MouseEvent e) {}
+	public void mouseExited(MouseEvent e) {
+	}
 
 	public int getPlayerTurn() {
 		return playerTurn;

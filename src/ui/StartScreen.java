@@ -1,143 +1,141 @@
-/**
- *  ============== Start Screen ================
- *
- *  This module will show a start screen allowing the user to choose the options
- * for the play of the game.  
- *
- *  
- */
 package ui;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
-
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JSpinner;
-import javax.swing.SpinnerNumberModel;
+import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 public class StartScreen {
 
-    public StartScreen(int boardsize, BufferedImage image) {
-        JFrame ss = new JFrame("Blocky");
-        ss.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        ss.setLocation(100, 100);
+	private static final int MAX_PLAYERS = 4;
 
-        GridBagLayout gbl = new GridBagLayout();
-        GridBagConstraints gbc = new GridBagConstraints();
-        JPanel p = new JPanel(gbl);
+	public StartScreen(int boardsize, BufferedImage image) {
+		JFrame ss = new JFrame("Blocky");
+		ss.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		ss.setLocation(100, 100);
 
-        JPanel titlePanel = new JPanel() {
-            public void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                // Graphics2D g2 = (Graphics2D)g;
-                if (image != null)
-                    g.drawImage(image, 0, 0, 425, 135, null);
-                else
-                    g.drawString("Blocky", 0, 0);
-            }
-        };
-        titlePanel.setPreferredSize(new Dimension(425, 135));
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.weightx = 10;
-        gbc.gridwidth = 4;
-        p.add(titlePanel, gbc);
+		GridBagLayout gbl = new GridBagLayout();
+		GridBagConstraints gbc = new GridBagConstraints();
+		JPanel p = new JPanel(gbl);
 
-        // Levels
-        JLabel levelLabel = new JLabel("Levels");
-        levelLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        gbc.gridx = 1;
-        gbc.gridy = 2;
-        gbc.gridwidth = 1;
-        p.add(levelLabel, gbc);
+		JPanel titlePanel = new JPanel() {
+			public void paintComponent(Graphics g) {
+				super.paintComponent(g);
+				if (image != null)
+					g.drawImage(image, 0, 0, 425, 135, null);
+				else
+					g.drawString("Blocky", 0, 0);
+			}
+		};
+		titlePanel.setPreferredSize(new Dimension(425, 135));
+		gbc.gridx = 0;
+		gbc.gridy = 0;
+		gbc.weightx = 10;
+		gbc.gridwidth = 4;
+		p.add(titlePanel, gbc);
 
-        JLabel playerLabel = new JLabel("Human Players");
-        playerLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        gbc.gridx = 1;
-        gbc.gridy = 3;
-        gbc.gridwidth = 1;
-        p.add(playerLabel, gbc);
+		Font labelFont = new Font("Arial", Font.BOLD, 16);
 
-        JLabel aiLabel = new JLabel("AI players");
-        aiLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        gbc.gridx = 1;
-        gbc.gridy = 4;
-        gbc.gridwidth = 1;
-        p.add(aiLabel, gbc);
+		JLabel levelLabel = new JLabel("Levels");
+		levelLabel.setFont(labelFont);
+		gbc.gridx = 1; gbc.gridy = 2; gbc.gridwidth = 1;
+		p.add(levelLabel, gbc);
 
-        JLabel turnsLabel = new JLabel("Turns");
-        turnsLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        gbc.gridx = 1;
-        gbc.gridy = 5;
-        gbc.gridwidth = 1;
-        p.add(turnsLabel, gbc);
+		JLabel humanLabel = new JLabel("Human Players");
+		humanLabel.setFont(labelFont);
+		gbc.gridy = 3; p.add(humanLabel, gbc);
 
-        SpinnerNumberModel levelModel = new SpinnerNumberModel(3, 2, 6, 1);
-        JSpinner levels = new JSpinner(levelModel);
-        levels.setFont(new Font("Arial", Font.PLAIN, 20));
-        gbc.gridx = 2;
-        gbc.gridy = 2;
-        p.add(levels, gbc);
+		JLabel ai1Label = new JLabel("Smart AI");
+		ai1Label.setFont(labelFont);
+		gbc.gridy = 4; p.add(ai1Label, gbc);
 
-        // human & AI players
-        SpinnerNumberModel plModel = new SpinnerNumberModel(2, 0, 4, 1);
-        SpinnerNumberModel aiModel = new SpinnerNumberModel(0, 0, 2, 1);
-        JSpinner players = new JSpinner(plModel);
-        JSpinner bots = new JSpinner(aiModel);
-        players.setFont(new Font("Arial", Font.PLAIN, 20));
-        bots.setFont(new Font("Arial", Font.PLAIN, 20));
-        players.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                JSpinner spinner = (JSpinner) e.getSource();
-                int ai = (int) players.getValue();
-                aiModel.setMaximum(4 - ai);
-            }
-        });
-        gbc.gridx = 2;
-        gbc.gridy = 3;
-        p.add(players, gbc);
+		JLabel ai2Label = new JLabel("Smart AI 2");
+		ai2Label.setFont(labelFont);
+		gbc.gridy = 5; p.add(ai2Label, gbc);
 
-        gbc.gridx = 2;
-        gbc.gridy = 4;
-        p.add(bots, gbc);
+		JLabel ai3Label = new JLabel("Simple AI");
+		ai3Label.setFont(labelFont);
+		gbc.gridy = 6; p.add(ai3Label, gbc);
 
-        SpinnerNumberModel turnsModel = new SpinnerNumberModel(20, 8, 60, 1);
-        JSpinner turns = new JSpinner(turnsModel);
-        gbc.gridx = 2;
-        gbc.gridy = 5;
-        p.add(turns, gbc);
+		JLabel turnsLabel = new JLabel("Turns");
+		turnsLabel.setFont(labelFont);
+		gbc.gridy = 7; p.add(turnsLabel, gbc);
 
-        //
-        JButton start = new JButton("Start");
-        start.setForeground(Color.BLUE);
-        start.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                new Thread(() -> BlockyMain.launchGame((int) players.getValue(), (int) bots.getValue(),
-                        (int) levels.getValue(), (int) turns.getValue())).run();
-                ss.setVisible(false);
-            }
-        });
-        gbc.gridx = 2;
-        gbc.gridy = 6;
-        gbc.gridwidth = 2;
-        p.add(start, gbc);
+		SpinnerNumberModel levelModel = new SpinnerNumberModel(3, 2, 6, 1);
+		JSpinner levels = new JSpinner(levelModel);
+		levels.setFont(new Font("Arial", Font.PLAIN, 20));
+		gbc.gridx = 2; gbc.gridy = 2;
+		p.add(levels, gbc);
 
-        ss.add(p);
-        ss.pack();
-        ss.setVisible(true);
-    }
+		// Player spinners
+		SpinnerNumberModel humanModel = new SpinnerNumberModel(1, 0, 4, 1);
+		SpinnerNumberModel smartAIModel = new SpinnerNumberModel(0, 0, 4, 1);
+		SpinnerNumberModel smartAI2Model = new SpinnerNumberModel(0, 0, 4, 1);
+		SpinnerNumberModel simpleAIModel = new SpinnerNumberModel(0, 0, 4, 1);
+
+		JSpinner human = new JSpinner(humanModel);
+		JSpinner smartAI = new JSpinner(smartAIModel);
+		JSpinner smartAI2 = new JSpinner(smartAI2Model);
+		JSpinner simpleAI = new JSpinner(simpleAIModel);
+
+		human.setFont(new Font("Arial", Font.PLAIN, 18));
+		smartAI.setFont(new Font("Arial", Font.PLAIN, 18));
+		smartAI2.setFont(new Font("Arial", Font.PLAIN, 18));
+		simpleAI.setFont(new Font("Arial", Font.PLAIN, 18));
+
+		ChangeListener playerLimiter = new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				int total = (int) human.getValue() + (int) smartAI.getValue()
+					+ (int) smartAI2.getValue() + (int) simpleAI.getValue();
+
+				if (total > MAX_PLAYERS) {
+					((JSpinner) e.getSource()).setValue(((int) ((JSpinner) e.getSource()).getValue()) - 1);
+				}
+			}
+		};
+
+		human.addChangeListener(playerLimiter);
+		smartAI.addChangeListener(playerLimiter);
+		smartAI2.addChangeListener(playerLimiter);
+		simpleAI.addChangeListener(playerLimiter);
+
+		gbc.gridx = 2; gbc.gridy = 3; p.add(human, gbc);
+		gbc.gridy = 4; p.add(smartAI, gbc);
+		gbc.gridy = 5; p.add(smartAI2, gbc);
+		gbc.gridy = 6; p.add(simpleAI, gbc);
+
+		SpinnerNumberModel turnsModel = new SpinnerNumberModel(20, 8, 60, 1);
+		JSpinner turns = new JSpinner(turnsModel);
+		turns.setFont(new Font("Arial", Font.PLAIN, 20));
+		gbc.gridy = 7; p.add(turns, gbc);
+
+		JButton start = new JButton("Start");
+		start.setForeground(Color.BLUE);
+		start.setFont(new Font("Arial", Font.BOLD, 16));
+		start.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				new Thread(() -> BlockyMain.launchGame(
+					(int) human.getValue(),
+					(int) smartAI.getValue(),
+					(int) smartAI2.getValue(),
+					(int) simpleAI.getValue(),
+					(int) levels.getValue(),
+					(int) turns.getValue()
+				)).start();
+				ss.setVisible(false);
+			}
+		});
+
+		gbc.gridx = 2; gbc.gridy = 8; gbc.gridwidth = 2;
+		p.add(start, gbc);
+
+		ss.add(p);
+		ss.pack();
+		ss.setVisible(true);
+	}
 }

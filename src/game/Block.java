@@ -6,6 +6,8 @@ This file contains the Block class, the main data structure used in the game.
  */
 
 import java.awt.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -56,7 +58,6 @@ import java.util.Random;
  */
 public class Block {
 
-	// 트리 구조
 	private Block parent;
 	// children[0] = UR, children[1] = UL, children[2] = LL, children[3] = LR
 	private Block[] children;
@@ -64,11 +65,9 @@ public class Block {
 
 	private static Block highlighted;
 
-	// 레벨 정보
 	private int level;
 	private int max_depth;
 
-	// 리프일 때만 색을 가진다
 	private Color color;
 
 	/**
@@ -84,19 +83,15 @@ public class Block {
 		this.parent = parent;
 
 		if (parent == null) {
-			// 루트 블록
 			this.level = 0;
 			this.rect = new Rectangle(p.x, p.y, maxSize, maxSize);
 		} else {
-			// 자식 블록: 항상 부모의 절반 크기
 			this.level = parent.level + 1;
 			int half = parent.rect.width / 2;
 			this.rect = new Rectangle(p.x, p.y, half, half);
 		}
 
-		// 처음에는 자식 없음
 		this.children = new Block[0];
-		// 리프면 색을 가진다
 		this.color = randomColor();
 	}
 
@@ -138,18 +133,15 @@ public class Block {
 			return false;
 		}
 
-		// children 인덱스: 0=UR, 1=UL, 2=LL, 3=LR
 		Block ur = children[0], ul = children[1], ll = children[2], lr = children[3];
 
 		if (isVertical) {
-			// 테스트 기대 패턴에 맞춘 vertical swap:
 			// after vertical: 0=YELLOW(LR), 1=GREEN(LL), 2=BLUE(UL), 3=RED(UR)
 			children[0] = lr; // UR <= LR
 			children[3] = ur; // LR <= UR
 			children[1] = ll; // UL <= LL
 			children[2] = ul; // LL <= UL
 		} else {
-			// horizontal swap:
 			// after horizontal: 0=BLUE(UL),1=RED(UR),2=YELLOW(LR),3=GREEN(LL)
 			children[0] = ul; // UR <= UL
 			children[1] = ur; // UL <= UR
@@ -179,14 +171,12 @@ public class Block {
 		Block ur = children[0], ul = children[1], ll = children[2], lr = children[3];
 
 		if (isClockwise) {
-			// 시계 방향:
 			// UL -> UR, LL -> UL, LR -> LL, UR -> LR
 			children[0] = ul; // new UR
 			children[1] = ll; // new UL
 			children[2] = lr; // new LL
 			children[3] = ur; // new LR
 		} else {
-			// 반시계 방향:
 			// LR -> UR, UR -> UL, UL -> LL, LL -> LR
 			children[0] = lr; // new UR
 			children[1] = ur; // new UL
@@ -204,11 +194,9 @@ public class Block {
 	 * A Block can be smashed iff it has no children and level < max_depth.
 	 */
 	public boolean smash() {
-		// 이미 자식이 있으면 불가
 		if (hasChildren()) {
 			return false;
 		}
-		// max depth면 불가
 		if (level >= max_depth) {
 			return false;
 		}
@@ -216,13 +204,11 @@ public class Block {
 		int half = rect.width / 2;
 		children = new Block[4];
 
-		// children 인덱스: 0=UR, 1=UL, 2=LL, 3=LR
 		children[0] = new Block(new Point(rect.x + half, rect.y), max_depth, this, half);          // UR
 		children[1] = new Block(new Point(rect.x, rect.y), max_depth, this, half);                 // UL
 		children[2] = new Block(new Point(rect.x, rect.y + half), max_depth, this, half);          // LL
 		children[3] = new Block(new Point(rect.x + half, rect.y + half), max_depth, this, half);   // LR
 
-		// 내부 노드는 색 없음
 		this.color = null;
 		return true;
 	}
@@ -285,7 +271,6 @@ public class Block {
 
 	private void fillFlatten(Color[][] grid, int col, int row, int size) {
 		if (!hasChildren()) {
-			// BlockTest는 grid[row][col] 형태로 접근하므로 j,i 순서로 채운다.
 			for (int i = col; i < col + size; i++) {
 				for (int j = row; j < row + size; j++) {
 					grid[j][i] = color;
@@ -293,7 +278,6 @@ public class Block {
 			}
 		} else {
 			int half = size / 2;
-			// children[1] = UL, children[0] = UR, children[2] = LL, children[3] = LR
 			children[1].fillFlatten(grid, col, row, half);              // UL
 			children[0].fillFlatten(grid, col + half, row, half);       // UR
 			children[2].fillFlatten(grid, col, row + half, half);       // LL
@@ -334,21 +318,6 @@ public class Block {
 	public void setPoint(Point p) {
 		this.rect.x = p.x;
 		this.rect.y = p.y;
-	}
-
-	// ===== Random block selection (for AI 등) =====
-
-	public Block getRandomBlock() {
-		Random r = new Random();
-
-		Block b = null;
-		while (b == null) {
-			int x = r.nextInt(rect.width) + rect.x;
-			int y = r.nextInt(rect.height) + rect.y;
-			int l = r.nextInt(max_depth + 1);
-			b = getSelectedBlock(x, y, l);
-		}
-		return b;
 	}
 
 	// ===== Deep copy & restore (SmartAI / SmartAI2 용) =====
@@ -392,18 +361,28 @@ public class Block {
 		return newB;
 	}
 
-	public void restoreFrom(Block backup) {
-		this.color = backup.color;
-		this.level = backup.level;
-		this.rect = new Rectangle(backup.rect);
+	public boolean unsmash() {
+		if (!hasChildren())
+			return false;
 
-		if (backup.hasChildren()) {
-			this.children = new Block[4];
-			for (int i = 0; i < 4; i++) {
-				this.children[i] = deepCopyChild(backup.children[i], this);
+		Map<Color, Integer> count = new HashMap<>();
+		for (Block c : children) {
+			if (!c.hasChildren()) {
+				count.put(c.getColor(), count.getOrDefault(c.getColor(), 0) + 1);
 			}
-		} else {
-			this.children = null;
 		}
+
+		Color chosen = Color.GRAY; // fallback
+		int max = 0;
+		for (Color c : count.keySet()) {
+			if (count.get(c) > max) {
+				chosen = c;
+				max = count.get(c);
+			}
+		}
+
+		children = new Block[0];
+		this.color = chosen;
+		return true;
 	}
 }
