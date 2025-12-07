@@ -69,6 +69,7 @@ public class Block {
 	private int max_depth;
 
 	private Color color;
+	private Game game;
 
 	/**
 	 * Constructor for a Block
@@ -96,7 +97,7 @@ public class Block {
 	}
 
 	private Color randomColor() {
-		Color[] palette = {Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW};
+		Color[] palette = game.getColorList();
 		return palette[new Random().nextInt(palette.length)];
 	}
 

@@ -75,7 +75,6 @@ public class Game extends JPanel implements MouseListener {
 		this.setPreferredSize(new Dimension(BOARDSIZE, BOARDSIZE));
 		this.setBackground(Color.darkGray);
 		this.addMouseListener(this);
-
 		this.maxTurns = turns;
 		state = GameState.start;
 
@@ -192,8 +191,7 @@ public class Game extends JPanel implements MouseListener {
 
 	private void endOrContinueTurn() {
 		turnsPlayed++;
-
-		BlockyMain.updateTurns(turnsPlayed, maxTurns); // ← UI 연동 완료 ✔
+		BlockyMain.updateTurns(turnsPlayed, maxTurns);
 
 		if (turnsPlayed >= maxTurns) {
 			endGame();
@@ -202,8 +200,17 @@ public class Game extends JPanel implements MouseListener {
 
 		playerTurn = (playerTurn + 1) % players.size();
 
-		BlockyMain.updatePlayers(); // ★ 추가
+		BlockyMain.updatePlayers();
+		repaint();
 
+		Player current = players.get(playerTurn);
+
+		if (!(current instanceof HumanPlayer)) {
+			Action aiAction = current.makeMove();
+			SwingUtilities.invokeLater(() -> nextTurn(aiAction));
+		} else {
+			BlockyMain.updateStatus("Your turn, " + current.getPlayerName(), false, Color.WHITE);
+		}
 		repaint();
 	}
 
@@ -239,8 +246,22 @@ public class Game extends JPanel implements MouseListener {
 		activeBlock = null;
 		BlockyMain.enableActions(false);
 		repaint();
-	}
 
+		Color[][] grid = board.flatten();
+		int n = grid.length;
+		int colorCount = 0;
+		int nullCount = 0;
+
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < n; j++) {
+				if (grid[i][j] == null) nullCount++;
+				else colorCount++;
+			}
+		}
+		System.out.println("Flatten size=" + n + "x" + n + " color=" + colorCount + " null=" + nullCount);
+		System.out.println("Sample color: " + grid[0][0]);
+
+	}
 
 	public void startGame() {
 		state = GameState.playing;
@@ -293,5 +314,9 @@ public class Game extends JPanel implements MouseListener {
 
 	public int getMaxTurns() {
 		return maxTurns;
+	}
+
+	public static Color[] getColorList() {
+		return COLOR_LIST;
 	}
 }

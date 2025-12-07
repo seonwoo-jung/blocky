@@ -9,7 +9,7 @@ public class SimpleAI extends Player {
 	}
 
 	@Override
-	public void makeMove() {
+	public Action makeMove() {
 
 		Block block = null;
 		for (int attempts = 0; attempts < 30; attempts++) {
@@ -17,11 +17,12 @@ public class SimpleAI extends Player {
 			if (block != null) break;
 		}
 
-		if (block == null) return;
+		if (block == null) return null;
 
 		Action action = randomAction();
-		action.runAction(block);
 
-		game.getBoard().updateBlockLocations();
+		game.activeBlock = block;
+
+		return action;
 	}
 }

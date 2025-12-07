@@ -43,7 +43,7 @@ public abstract class Player {
 		return playerID;
 	}
 
-	public abstract void makeMove();
+	public abstract Action makeMove();
 
 	protected int randomLevel() {
 		return (int)(Math.random() * (game.getBoard().getMaxDepth() + 1));

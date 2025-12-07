@@ -17,7 +17,7 @@ public class SmartAI extends Player {
 	}
 
 	@Override
-	public void makeMove() {
+	public Action makeMove() {
 		Block board = game.getBoard();
 
 		Action bestAction = null;
@@ -62,9 +62,11 @@ public class SmartAI extends Player {
 		if (bestAction != null && bestX >= 0) {
 			Block realTarget = board.getSelectedBlock(bestX, bestY, bestLevel);
 			if (realTarget != null) {
-				bestAction.runAction(realTarget);
-				board.updateBlockLocations();
+				game.activeBlock = realTarget;
+				return bestAction;
 			}
 		}
+
+		return randomAction();
 	}
 }

@@ -7,12 +7,6 @@ import game.Block;
 import game.Game;
 import game.Goal;
 
-/**
- * SmartAI2:
- * 여러 랜덤 위치/레벨에 대해
- * 모든 액션(Action.values())을 시뮬레이션해서
- * 가장 높은 점수를 내는 수를 실제 보드에 1번 적용한다.
- */
 public class SmartAI2 extends Player {
 
 	private final Random random = new Random();
@@ -22,7 +16,7 @@ public class SmartAI2 extends Player {
 	}
 
 	@Override
-	public void makeMove() {
+	public Action makeMove() {
 
 		Block board = game.getBoard();
 		Action[] actions = Action.values();
@@ -74,9 +68,11 @@ public class SmartAI2 extends Player {
 		if (bestAction != null && bestX >= 0) {
 			Block target = board.getSelectedBlock(bestX, bestY, bestLevel);
 			if (target != null) {
-				bestAction.runAction(target);
-				board.updateBlockLocations();
+				game.activeBlock = target;
+				return bestAction;
 			}
 		}
+
+		return randomAction();
 	}
 }
